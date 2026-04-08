@@ -1,0 +1,153 @@
+# StressFlow – Controlled CPU & RAM Load Orchestrator
+
+## Overview
+
+StressFlow is a simple project I built to test how a system behaves under controlled CPU and memory load.
+It uses multiple Python scripts that run one after another with a fixed delay, instead of hitting the system all at once.
+
+The idea is to simulate a more realistic load pattern — gradually increasing pressure, then shutting things down in the same controlled way. Everything is logged so you can clearly see what started and stopped, and when.
+
+
+## Features
+
+* Runs 6 stress scripts (CPU + RAM) in sequence
+* Adds a delay between each step (default: 1 minute)
+* Stops everything in the same order it started
+* Logs all activity with timestamps
+* Runs inside a single Docker container
+* Easy to tweak depending on your testing needs
+
+
+## Project Structure
+
+stress-test/
+│
+├── cpu1.py
+├── cpu2.py
+├── cpu3.py
+├── ram1.py
+├── ram2.py
+├── ram3.py
+├── run_controlled_logged.py
+├── execution.log
+└── Dockerfile
+
+
+## Prerequisites
+
+Before running this, make sure you have:
+
+* Docker Desktop installed (Windows)
+* Python (only needed if you want to test scripts outside Docker)
+
+## Docker Setup & Usage
+
+## Step 1: Clone the repo
+
+git clone https://github.com/your-username/stressflow.git
+cd stressflow
+
+## Step 2: Build the image
+
+docker build -t stressflow .
+
+## Step 3: Run the container
+
+docker run --name stress-container stressflow
+
+## Step 4: (Recommended) Run with limits
+
+This is important — without limits, your system can slow down or hang.
+
+docker run --name stress-container ^
+--cpus="2.0" ^
+--memory="4g" ^
+stressflow
+
+## Execution Flow
+
+Here’s how it runs:
+
+| Time   | Action     |
+| ------ | ---------- |
+| 0 min  | Start cpu1 |
+| 1 min  | Start cpu2 |
+| 2 min  | Start cpu3 |
+| 3 min  | Start ram1 |
+| 4 min  | Start ram2 |
+| 5 min  | Start ram3 |
+| 6 min  | Stop cpu1  |
+| 7 min  | Stop cpu2  |
+| 8 min  | Stop cpu3  |
+| 9 min  | Stop ram1  |
+| 10 min | Stop ram2  |
+| 11 min | Stop ram3  |
+
+So instead of everything running at once, load builds up step-by-step.
+
+##  Logging
+
+Every action is logged with a timestamp.
+
+## View logs inside container
+
+docker exec -it stress-container cat execution.log
+
+## Copy logs to your system
+
+docker cp stress-container:/app/execution.log .
+
+## How It Works
+
+* Uses Python `subprocess` to start each script
+* Waits between steps using `time.sleep()`
+* Tracks each process and shuts it down in order
+* Writes everything to a log file for visibility
+
+---
+
+## Important Notes
+
+* This will push your CPU and RAM — use carefully
+* Always run with Docker limits unless you know what you're doing
+* Memory may not free up instantly depending on your system
+
+---
+
+## Use Cases
+
+Some practical uses for this:
+
+* Testing system performance under gradual load
+* Checking Docker resource limits
+* Simulating real-world workload patterns
+* Learning how process control works in containers
+
+---
+
+## Customization
+
+You can easily adjust things like:
+
+* Delay time → change `time.sleep(60)`
+* Add/remove scripts
+* Change execution order
+* Improve or extend logging
+
+---
+
+## Future Improvements
+
+Things I might add later:
+
+* Docker Compose setup
+* More control over CPU usage (percentage-based)
+* Monitoring with Grafana/Prometheus
+* Loop mode (run continuously)
+* Kubernetes version
+
+---
+
+## Author
+
+Usman Inam.
